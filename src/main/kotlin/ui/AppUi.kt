@@ -43,6 +43,17 @@ fun App() {
     
     // Для получения фокуса и обработки клавиши Escape
     val focusRequester = remember { FocusRequester() }
+    
+    // Общий обработчик нажатия Escape
+    val handleEscapeKey: (key: Key, type: KeyEventType) -> Boolean = { key, type ->
+        if (key == Key.Escape && type == KeyEventType.KeyDown) {
+            isExpanded.value = false
+            true // Обработали событие
+        } else {
+            false // Не обработали событие
+        }
+    }
+
 
     // Настройки для симуляции
     val settings = remember { mutableStateOf(SimulationSettings()) }
@@ -161,14 +172,11 @@ fun App() {
                         .background(Color.Black.copy(alpha = 0.7f))
                         .focusRequester(focusRequester)
                         .onKeyEvent { keyEvent ->
-                            // Проверяем, что была нажата клавиша Escape
-                            if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyDown) {
-                                isExpanded.value = false
-                                true // Обработали событие
-                            } else {
-                                false // Не обработали событие
-                            }
+                            handleEscapeKey(keyEvent.key, keyEvent.type)
                         }
+                        // Добавляем обработчик кликов, чтобы закрывать настройки при клике на затемнение
+                        .clickable { isExpanded.value = false }
+
                 )
             }
 
@@ -183,6 +191,10 @@ fun App() {
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(32.dp)
+                        .onKeyEvent { keyEvent ->
+                            handleEscapeKey(keyEvent.key, keyEvent.type)
+                        }
+
                 ) {
                     // Рамка настроек (только белые края без фона)
                     Box(
