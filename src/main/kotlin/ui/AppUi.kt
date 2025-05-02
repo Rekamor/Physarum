@@ -5,10 +5,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -45,21 +47,6 @@ fun App() {
     // Настройки для симуляции
     val settings = remember { mutableStateOf(SimulationSettings()) }
 
-//    val simulation = remember {
-//        PhysarumSimulation(
-//            width = 800,
-//            height = 600,
-//            settings = settings.value
-//        )
-//    }
-//
-//    LaunchedEffect(Unit) {
-//        while (true) {
-//            kotlinx.coroutines.delay(16) // ~60fps
-//            simulation.update()
-//        }
-//    }
-
     fun exportSettings() {
         try {
             val settingsJson = SettingsSerializer.toJson(settings.value)
@@ -76,7 +63,6 @@ fun App() {
         try {
             val importedSettings = SettingsSerializer.fromJson(settingsText)
             settings.value = importedSettings
-//            simulation.updateSettings(importedSettings)
             statusMessage.value = "Настройки успешно импортированы"
         } catch (e: SettingsSerializationException) {
             statusMessage.value = e.message ?: "Ошибка при импорте настроек: ${e.message}"
@@ -99,20 +85,33 @@ fun App() {
             modifier = Modifier.fillMaxSize()
         ) {
             // Основной контент - визуализация симуляции
-//            SimulationVisualization(simulation)
+            // SimulationVisualization(simulation)
 
-            // Кнопка "Настройки"
+            // Иконка шестеренки в правом нижнем углу (вместо кнопки настроек)
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+                    .align(Alignment.BottomEnd)
             ) {
-                Button(
-                    onClick = { isExpanded.value = true },
-                    modifier = Modifier.align(Alignment.Center)
+                // Полупрозрачный фон для иконки
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.35f))
                 ) {
-                    Text("Настройки")
+                    // Иконка настроек
+                    IconButton(
+                        onClick = { isExpanded.value = true },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Настройки",
+                            tint = Color.White.copy(alpha = 0.8f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
 
@@ -144,13 +143,11 @@ fun App() {
                 )
             }
 
-            // Полноэкранные настройки
+            // Затемнение фона (отдельно от настроек)
             AnimatedVisibility(
                 visible = isExpanded.value,
-                enter = fadeIn(animationSpec = tween(300)) +
-                        slideInVertically(initialOffsetY = { it }, animationSpec = tween(300)),
-                exit = fadeOut(animationSpec = tween(300)) +
-                        slideOutVertically(targetOffsetY = { it }, animationSpec = tween(300))
+                enter = fadeIn(animationSpec = tween(300)),
+                exit = fadeOut(animationSpec = tween(300))
             ) {
                 // Запрашиваем фокус при открытии панели
                 LaunchedEffect(Unit) {
@@ -172,69 +169,76 @@ fun App() {
                                 false // Не обработали событие
                             }
                         }
+                )
+            }
+
+            // Панель настроек (отдельно от затемнения)
+            AnimatedVisibility(
+                visible = isExpanded.value,
+                enter = slideInVertically(initialOffsetY = { it }, animationSpec = tween(300)),
+                exit = slideOutVertically(targetOffsetY = { it }, animationSpec = tween(300))
+            ) {
+                // Содержимое настроек
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(32.dp)
                 ) {
-                    // Содержимое настроек
+                    // Рамка настроек (только белые края без фона)
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(32.dp)
+                            .border(2.dp, Color.White, RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Transparent)
                     ) {
-                        // Рамка настроек (только белые края без фона)
-                        Box(
+                        Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .border(2.dp, Color.White, RoundedCornerShape(8.dp))
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.Transparent)
+                                .padding(32.dp)
+                                .verticalScroll(rememberScrollState())
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(32.dp)
-                                    .verticalScroll(rememberScrollState())
-                            ) {
-                                Text(
-                                    text = "Настройки",
-                                    style = MaterialTheme.typography.h5,
-                                    color = Color.White
-                                )
+                            Text(
+                                text = "Настройки",
+                                style = MaterialTheme.typography.h5,
+                                color = Color.White
+                            )
 
-                                Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(32.dp))
 
-                                // Вместо стандартной панели настроек используем модифицированную
-                                // с уменьшенной шириной полей и добавлением диапазонов
-                                FullscreenSettingsContent(
-                                    settings = settings.value,
-                                    onSettingsChanged = {
-                                        settings.value = it
-                                        // simulation.updateSettings(it)
-                                    },
-                                    onExportSettings = { exportSettings() },
-                                    onImportSettingsClick = { isImportDialogOpen.value = true }
-                                )
-                            }
-                            
-                            // Крестик размещаем над содержимым
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(16.dp)
-                                    .size(48.dp)  // Увеличенная область нажатия
-                                    .background(
-                                        color = Color.Black.copy(alpha = 0.5f), 
-                                        shape = RoundedCornerShape(24.dp)
-                                    )  // Добавляем фон для лучшей видимости
+                            // Вместо стандартной панели настроек используем модифицированную
+                            // с уменьшенной шириной полей и добавлением диапазонов
+                            FullscreenSettingsContent(
+                                settings = settings.value,
+                                onSettingsChanged = {
+                                    settings.value = it
+                                    // simulation.updateSettings(it)
+                                },
+                                onExportSettings = { exportSettings() },
+                                onImportSettingsClick = { isImportDialogOpen.value = true }
+                            )
+                        }
+                        
+                        // Крестик размещаем над содержимым
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp)
+                                .size(48.dp)  // Увеличенная область нажатия
+                                .background(
+                                    color = Color.Black.copy(alpha = 0.5f), 
+                                    shape = RoundedCornerShape(24.dp)
+                                )  // Добавляем фон для лучшей видимости
+                        ) {
+                            IconButton(
+                                onClick = { isExpanded.value = false },
+                                modifier = Modifier.fillMaxSize()
                             ) {
-                                IconButton(
-                                    onClick = { isExpanded.value = false },
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Закрыть",
-                                        tint = Color.White
-                                    )
-                                }
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Закрыть",
+                                    tint = Color.White
+                                )
                             }
                         }
                     }
