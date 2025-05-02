@@ -1,9 +1,12 @@
+// Обновленный диалог импорта
 package ui.components
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -27,23 +30,35 @@ fun ImportDialog(
                     onValueChange = onImportTextChange,
                     modifier = Modifier.fillMaxWidth().height(200.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+            }
+        },
+        buttons = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Отмена")
+                }
+                
                 Button(
                     onClick = onPasteFromClipboard,
-                    modifier = Modifier.align(Alignment.End)
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text("Вставить из буфера")
                 }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onImportSettings) {
-                Text("Импортировать")
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Отмена")
+                
+                Button(
+                    onClick = onImportSettings,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Импорт")
+                }
             }
         }
     )
