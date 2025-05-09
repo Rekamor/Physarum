@@ -1,197 +1,218 @@
 package ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import model.AgentSettings
-import model.PheromoneSettings
 import model.SimulationSettings
 
 @Composable
-fun SettingsPanel(
-    height: Dp,
+fun FullscreenSettingsContent(
     settings: SimulationSettings,
     onSettingsChanged: (SimulationSettings) -> Unit,
     onExportSettings: () -> Unit,
     onImportSettingsClick: () -> Unit
 ) {
-    val scrollState = rememberScrollState()
-    
+    // Блок настроек агентов
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = 8.dp,
-        backgroundColor = MaterialTheme.colors.surface
+        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+        elevation = 4.dp,
+        backgroundColor = Color.Black.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, Color.White)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .height(height)
-                .verticalScroll(scrollState)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "Настройки симуляции Physarum",
-                style = MaterialTheme.typography.h6
+                text = "Настройки агентов",
+                style = MaterialTheme.typography.subtitle1,
+                color = Color.White
             )
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Блок настроек агентов
-            AgentSettingsCard(
-                agentSettings = settings.agent,
-                onAgentSettingsChanged = { newAgentSettings ->
-                    onSettingsChanged(settings.copy(agent = newAgentSettings))
-                }
+
+            // Поля ввода с диапазонами
+            SettingsFieldWithRange(
+                value = settings.agent.speed.toString(),
+                onValueChange = { value ->
+                    val newSpeed = value.toFloatOrNull() ?: settings.agent.speed
+                    val newAgent = settings.agent.copy(speed = newSpeed)
+                    onSettingsChanged(settings.copy(agent = newAgent))
+                },
+                label = "Скорость движения агента",
+                minValue = 0f,
+                maxValue = 10f
             )
-            
-            // Блок настроек феромонов
-            PheromoneSettingsCard(
-                pheromoneSettings = settings.pheromone,
-                onPheromoneSettingsChanged = { newPheromoneSettings ->
-                    onSettingsChanged(settings.copy(pheromone = newPheromoneSettings))
-                }
+
+            SettingsFieldWithRange(
+                value = settings.agent.viewAngle.toString(),
+                onValueChange = { value ->
+                    val newAngle = value.toFloatOrNull() ?: settings.agent.viewAngle
+                    val newAgent = settings.agent.copy(viewAngle = newAngle)
+                    onSettingsChanged(settings.copy(agent = newAgent))
+                },
+                label = "Угол зрения агента (в градусах)",
+                minValue = 0f,
+                maxValue = 180f
             )
-            
-            // Кнопки действий с настройками
+
+            // Исправлено для количества агентов - преобразуем float в int
+            SettingsFieldWithRange(
+                value = settings.agent.count.toString(),
+                onValueChange = { value ->
+                    val floatValue = value.toFloatOrNull() ?: settings.agent.count.toFloat()
+                    val newCount = floatValue.toInt()
+                    val newAgent = settings.agent.copy(count = newCount)
+                    onSettingsChanged(settings.copy(agent = newAgent))
+                },
+                label = "Количество агентов",
+                minValue = 100f,
+                maxValue = 10000f,
+                isIntegerValue = true  // Добавляем флаг для целочисленных значений
+            )
+
+            // Добавлен диапазон для количества феромонов
+            SettingsFieldWithRange(
+                value = settings.agent.pheromoneAmount.toString(),
+                onValueChange = { value ->
+                    val newAmount = value.toFloatOrNull() ?: settings.agent.pheromoneAmount
+                    val newAgent = settings.agent.copy(pheromoneAmount = newAmount)
+                    onSettingsChanged(settings.copy(agent = newAgent))
+                },
+                label = "Количество феромона",
+                minValue = 0f,
+                maxValue = 20f
+            )
+        }
+    }
+
+    // Блок настроек феромонов
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+        elevation = 4.dp,
+        backgroundColor = Color.Black.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, Color.White)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Настройки феромонов",
+                style = MaterialTheme.typography.subtitle1,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsFieldWithRange(
+                value = settings.pheromone.diffusionRate.toString(),
+                onValueChange = { value ->
+                    val newRate = value.toFloatOrNull() ?: settings.pheromone.diffusionRate
+                    val newPheromone = settings.pheromone.copy(diffusionRate = newRate)
+                    onSettingsChanged(settings.copy(pheromone = newPheromone))
+                },
+                label = "Скорость диффузии феромона",
+                minValue = 0f,
+                maxValue = 1f
+            )
+
+            SettingsFieldWithRange(
+                value = settings.pheromone.evaporationRate.toString(),
+                onValueChange = { value ->
+                    val newRate = value.toFloatOrNull() ?: settings.pheromone.evaporationRate
+                    val newPheromone = settings.pheromone.copy(evaporationRate = newRate)
+                    onSettingsChanged(settings.copy(pheromone = newPheromone))
+                },
+                label = "Скорость испарения феромона",
+                minValue = 0f,
+                maxValue = 1f
+            )
+
+            SettingsFieldWithRange(
+                value = settings.pheromone.influence.toString(),
+                onValueChange = { value ->
+                    val newInfluence = value.toFloatOrNull() ?: settings.pheromone.influence
+                    val newPheromone = settings.pheromone.copy(influence = newInfluence)
+                    onSettingsChanged(settings.copy(pheromone = newPheromone))
+                },
+                label = "Сила влияния феромона",
+                minValue = 0f,
+                maxValue = 5f
+            )
+        }
+    }
+
+    // Заглушки для дополнительных функций
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+        elevation = 4.dp,
+        backgroundColor = Color.Black.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, Color.White)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Дополнительные функции",
+                style = MaterialTheme.typography.subtitle1,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Кнопка импорта настроек
                 Button(
-                    onClick = onImportSettingsClick
+                    onClick = { /* Заглушка для генерации рандомных настроек */ },
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text("Импорт настроек")
+                    Text("Рандомные настройки")
                 }
-                
-                // Кнопка экспорта настроек
+
                 Button(
-                    onClick = onExportSettings
+                    onClick = { /* Заглушка для скриншота */ },
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text("Экспорт настроек")
+                    Text("Скриншот")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = { /* Заглушка для записи экрана */ },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Запись экрана")
+                }
+
+                Button(
+                    onClick = { /* Заглушка для переключения градиентов */ },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Переключение градиентов")
                 }
             }
         }
     }
-}
 
-@Composable
-private fun AgentSettingsCard(
-    agentSettings: AgentSettings,
-    onAgentSettingsChanged: (AgentSettings) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-        elevation = 4.dp
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = "Настройки агентов",
-                style = MaterialTheme.typography.subtitle1
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            SettingsTextField(
-                value = agentSettings.speed.toString(),
-                onValueChange = { value ->
-                    val newSpeed = value.toFloatOrNull() ?: agentSettings.speed
-                    onAgentSettingsChanged(agentSettings.copy(speed = newSpeed))
-                },
-                label = "Скорость движения агента"
-            )
-            
-            SettingsTextField(
-                value = agentSettings.viewAngle.toString(),
-                onValueChange = { value ->
-                    val newViewAngle = value.toFloatOrNull() ?: agentSettings.viewAngle
-                    onAgentSettingsChanged(agentSettings.copy(viewAngle = newViewAngle))
-                },
-                label = "Угол зрения агента (в градусах)"
-            )
-            
-            SettingsTextField(
-                value = agentSettings.count.toString(),
-                onValueChange = { value ->
-                    val newCount = value.toIntOrNull() ?: agentSettings.count
-                    onAgentSettingsChanged(agentSettings.copy(count = newCount))
-                },
-                label = "Количество агентов"
-            )
-            
-            SettingsTextField(
-                value = agentSettings.pheromoneAmount.toString(),
-                onValueChange = { value ->
-                    val newAmount = value.toFloatOrNull() ?: agentSettings.pheromoneAmount
-                    onAgentSettingsChanged(agentSettings.copy(pheromoneAmount = newAmount))
-                },
-                label = "Количество феромона, создаваемого агентом"
-            )
-        }
-    }
-}
-
-@Composable
-private fun PheromoneSettingsCard(
-    pheromoneSettings: PheromoneSettings,
-    onPheromoneSettingsChanged: (PheromoneSettings) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-        elevation = 4.dp
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = "Настройки феромонов",
-                style = MaterialTheme.typography.subtitle1
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            SettingsTextField(
-                value = pheromoneSettings.diffusionRate.toString(),
-                onValueChange = { value ->
-                    val newRate = value.toFloatOrNull() ?: pheromoneSettings.diffusionRate
-                    onPheromoneSettingsChanged(pheromoneSettings.copy(diffusionRate = newRate))
-                },
-                label = "Скорость диффузии феромона"
-            )
-            
-            SettingsTextField(
-                value = pheromoneSettings.evaporationRate.toString(),
-                onValueChange = { value ->
-                    val newRate = value.toFloatOrNull() ?: pheromoneSettings.evaporationRate
-                    onPheromoneSettingsChanged(pheromoneSettings.copy(evaporationRate = newRate))
-                },
-                label = "Скорость испарения феромона"
-            )
-            
-            SettingsTextField(
-                value = pheromoneSettings.influence.toString(),
-                onValueChange = { value ->
-                    val newInfluence = value.toFloatOrNull() ?: pheromoneSettings.influence
-                    onPheromoneSettingsChanged(pheromoneSettings.copy(influence = newInfluence))
-                },
-                label = "Сила влияния феромона на агентов"
-            )
-        }
-    }
-}
-
-@Composable
-private fun SettingsTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String
-) {
-    TextField(
-        value = value,
-        onValueChange = onValueChange,
+    // Кнопки импорта/экспорта настроек
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        label = { Text(label) },
-        singleLine = true
-    )
-    Spacer(modifier = Modifier.height(8.dp))
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Button(
+            onClick = onImportSettingsClick,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text("Импорт настроек")
+        }
+
+        Button(
+            onClick = onExportSettings,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text("Экспорт настроек")
+        }
+    }
 }

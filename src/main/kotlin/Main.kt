@@ -1,3 +1,10 @@
-fun main() {
-    println("Hello World!")
+package ui
+
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+
+fun main(): Unit = application {
+    Window(onCloseRequest = ::exitApplication, title = "Physarum Simulation") {
+        App()
+    }
 }
